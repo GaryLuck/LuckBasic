@@ -1,2 +1,2 @@
 # LuckBasic
- New dialect of Basic language
+ New dialect of the Basic language.  Initially will follow Dartmouth Basic!
