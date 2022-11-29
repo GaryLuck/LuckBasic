@@ -1,0 +1,760 @@
+﻿'---script created on 11-08-2022 14:51:59 by 
+' GarysBasic
+' This is my personal project to build a Basic interpreter.
+' It's a high level project to prove to myself that i understand how to build an interpreter.
+' I'm intentionaly using very simple algorithms and data structures. Readability outweighs performance.
+' Hopefully with my embeded comments you will understand the concepts of an interpreter.
+' 
+' Gary Luckenbaugh - fall of '22
+'
+' To date, the code you see here converts an infix expression to reverse polish notation, rpn.
+' An infix expression such as a+b*c will be converted to a b c * +. Only lowercase letters are recognized.
+' This RPN is very similar to the old HP calculators.  The above can be treated as: push a, push b, push c. 
+' Then, multiply the top two numbers on the stack, leaving the result on
+' the stack, then add the top two items on the stack.  This will result in one element on the top that is
+' the result of the expression.
+'
+' The resulting RPN is represented by a string. Variables and numbers have a trailing space to set them
+' apart from other variables and numbers.  Operators do not have a trailing space, as it is unnecessary.
+' Note: There is a distinction between unary minus and the subtraction operator.  Subtraction is represented
+' by the usual '-' symbol.  Unary minus is represented by UNM.
+'
+'
+' Some global information.
+'
+' gettok pulls a symbol off of the front of a buffer, buff. 
+
+' buff contains the text being parsed.  tokens are numbers, identifiers, operators, and other symbols.
+' gettok fetches a token from the front of buff. tokens are represented as strings.
+
+
+
+uses "console"
+uses "file"
+
+dim buff as string
+const ops = 8
+dim op(ops) as string
+dim pTree as Dword
+
+op(1) = "+", "-", "*", "/", "(", ")", "=", "^"
+buff = ""
+
+' this is a brain dead way to store program lines,
+' but without a good collection class I am doing this.
+
+dim statement(5000) as string
+dim i as integer
+
+for i = 1 to 5000
+   statement(i) = ""
+next i
+
+  
+Function tbmain()
+  dim i as string
+  dim j as String
+  dim continue as integer
+  
+  dim tok as string
+  
+  start_variable_store()
+  
+  continue = true
+  
+  do while continue = true
+      console_write("Basic> ")
+      
+      i = console_read()
+      i = rid_eol(i)
+      i = UCase$(i)
+ '     console_writeline(i)
+      
+      buff = i
+      
+      tok = gettok()
+
+      if left$(tok, 1) >= "0" and left$(tok, 1) <= "9" then
+  
+         process_line(i)
+
+      elseif tok <> "BYE" then
+      
+         do_command(i)
+          
+      elseif tok = "BYE" then
+          continue = false
+          
+      end if
+      
+  loop
+ 
+   Release_variable_store()
+
+  TbMain = true
+
+end function
+
+sub edit_delete(linenum as string)
+'  console_writeline("deleting " + linenum)
+  statement(val(linenum)) = ""
+end sub
+
+sub edit_replace(linenum, buff as string)
+'    Console_writeline("linenum = "+linenum)
+'    console_writeline( "     buff = "+buff)
+    statement(val(linenum)) = buff
+end sub
+
+sub process_line(i as string)
+    dim line_tok as string
+    dim nexttok as string
+    buff = i
+    
+    line_tok = gettok()
+    nexttok = gettok()
+    if nexttok = "~" then
+        edit_delete(line_tok)
+    else
+       edit_replace(line_tok, nexttok + buff)
+    end if
+    
+end sub
+
+function do_command(cmd as string) as integer
+
+   if cmd = "LIST" then
+   
+      do_list()
+    
+  elseif left$(cmd, 5) = "PRINT" then
+  
+     console_writeline(Val(Expr_eval(mid$(cmd, 6))))
+
+  elseif left$(cmd, 3) = "LET" then
+  
+      do_let(cmd)
+      
+  elseif cmd = "NEW"then
+    
+       do_new()
+       
+  elseif left$(cmd, 4) = "LOAD" then
+    
+        do_load(trim$(mid$(cmd, 5)))
+        
+  Elseif left$(cmd, 4) = "SAVE" then
+  
+        do_save(trim$(mid$(cmd, 5)))
+  
+  elseif cmd = "RUN" then
+  
+        do_run()
+        
+  else
+    
+       do_let("LET"+cmd)
+       
+    end if
+  
+end function
+
+sub do_load(fname as string)
+
+   dim sbuffer as string
+   dim InFileChannel as long
+   
+   do_new()
+   
+  InFileChannel   = file_open(fname  , "INPUT" ) 
+
+  do while not file_eof(InFileChannel)
+    sBuffer = file_lineinput(InFileChannel)
+    process_line(sbuffer)
+  loop
+  
+  file_close(InFileChannel)
+   
+end sub
+
+sub do_save(fname as string)
+  dim OutFileChannel as long
+
+  OutFileChannel  = file_open(fname, "OUTPUT") 
+  
+  for i = 1 to 5000
+  
+      if statement(i) <> "" then
+        File_lineprint(OutFileChannel, Format$(i) + " " + statement(i))
+      end if
+      
+  next i
+
+   file_close(OutFileChannel)
+   
+end sub
+    
+
+sub do_new()
+
+    for i = 1 to 5000
+       statement(i) = ""
+    next i
+
+end sub
+
+Sub do_list()
+
+  for i = 1 to 5000
+  
+      if statement(i) <> "" then
+        console_writeline(format$(i) + " " +statement(i))
+      end if
+      
+  next i
+  
+End Sub
+
+sub do_run()
+
+   dim pc as integer ' Program counter
+   dim startpc as integer
+   dim stoprun as integer
+   dim cmd as string
+   dim target as integer
+   
+   startpc = 0
+   stoprun = false
+   
+   for pc = 1 to 5000
+   
+      if statement(pc) <> "" then
+          startpc = pc
+          exit for
+      end if
+      
+   next pc
+  
+  if startpc = 0 then
+      Console_writeline("No statements in buffer!")
+      exit sub
+  end if
+  
+  pc = startpc
+   
+  do while not stoprun and pc <> 0
+  
+      cmd = statement(pc)
+      
+      if left$(cmd, 3) = "LET" then
+         do_let(cmd)
+      elseif left$(cmd, 5) = "PRINT" then
+         console_writeline(Val(Expr_eval(mid$(cmd, 6))))
+      elseif left$(cmd, 4) = "GOTO" then
+          pc = do_goto(cmd) - 1
+      elseif cmd = "END" or cmd = "STOP" then
+          stoprun = true
+      elseif left$(cmd, 2) = "IF" then
+          target = do_if(cmd)
+
+          if target <> 0 then 
+              pc = target - 1
+
+          end if
+      Else
+         cmd = "LET" + cmd
+         do_let(cmd)
+'         console_writeline("Don't know " + cmd)
+      end if
+
+      pc = next_pc(pc)
+
+  loop
+  
+end sub
+
+function do_if(cmd as string) as integer
+  Dim b as integer
+  dim linenum as integer
+  
+  b = val(Expr_eval(mid$(cmd, 3)))
+  i = instr(1, cmd, "THEN")
+  
+  if i <> 0 then
+      linenum = val(mid$(cmd, i + 4))
+'      console_writeline("if target is " + linenum)
+  else
+      console_writeline("malformed command is  :" + cmd + ":   missing THEN")
+      linenum = -1
+  end if
+  
+  if b then
+     do_if = linenum
+  else 
+     do_if = 0 
+  end if
+  
+end function
+
+function next_pc(pc as integer) as integer
+  
+  for i = pc + 1 to 5000
+  
+    if statement(i) <> "" then
+        next_pc = i
+        exit function
+    end if
+  
+  next i
+  
+  next_pc = 0
+    
+end Function
+
+function do_goto(cmd as string) as integer
+  do_goto = val(mid$(cmd, 5))
+end function
+
+sub do_let(cmd as string)
+
+   dim var as string
+   dim firstchar as string
+'  console_writeline("cmd = "+cmd)
+      buff = mid$(cmd, 4)
+      var = gettok()
+ '     console_writeline("buff =" + buff+ "  " + "var ="+var)
+      firstchar = left$(var, 1)
+      if not (firstchar >= "A" and firstchar <= "Z") then
+      
+          console_writeline("Variable name must follow LET")
+          exit sub
+          
+      elseif gettok() <> "=" then
+      
+          Console_writeline("Missing '=' in LET  " + cmd)
+          exit sub
+          
+      end if
+  
+      Set_variable(var, Expr_eval(buff))
+
+end sub
+
+function Expr_eval(e as string) as string
+
+  clearstack()
+
+  buff = e
+  buff = parse_or()
+'  console_writeline("RPN = " + buff)
+  dim tok as string
+
+  tok = gettok()
+  
+  if tok = "~" then
+    Expr_eval = "0"
+    exit function
+  end if
+  
+  do while tok<> "~"
+'     console_writeline("Doing tok "+tok)
+      process_tok(tok)
+    tok = gettok()
+  loop
+  
+  Expr_eval = mypop()
+
+End function
+
+sub process_tok(tok as string)
+    dim i as integer
+
+    if tok = "UNM" then
+        mypush(Format$(-val(mypop())))
+        exit sub
+    end if
+    
+    for i = 1 to ops
+        if op(i) = tok then
+          process_op(op(i))
+          exit sub
+        end if
+    next i
+    
+    dim logical_op(7) as string
+    logical_op(1) = "<", "<=", "=", ">", ">=", "AND", "OR"
+    
+    for i = 1 to 7
+        if logical_op(i) = tok then
+'          Console_writeline("logical op " + logical_op(i))
+          process_op(logical_op(i))
+          exit sub
+        end if
+    next i
+ 
+    process_num_or_var(tok)
+    
+end sub
+
+sub process_op(op as string)
+   dim leftval as integer
+   Dim rightval as integer
+   dim res as integer
+   
+   rightval = Val(mypop())
+   leftval = Val(mypop())
+   
+   If op = "+" then
+      res = leftval + rightval
+   elseif op = "-" then
+      res = leftval - rightval
+   elseif op = "*" then
+      res = leftval*rightval
+   elseif op = "/" then
+      res = leftval/rightval
+   elseif op = "^" then
+      res = leftval ^ rightval
+   elseif op = "<" then
+      res = leftval < rightval
+   elseif op = "<=" then
+      res = leftval <= rightval
+   elseif op = "=" then
+'         console_writeline("= "+leftval+" "+rightval)
+      res = leftval = rightval
+   elseif op = ">" then
+      res = leftval > rightval
+   elseif op = ">=" then
+      res = leftval >= rightval
+   elseif op = "AND" then
+'      console_writeline("and "+leftval+" "+rightval)
+      res = leftval and rightval
+   elseif op = "OR" then
+      res = leftval or rightval
+    else
+       Console_writeline("Not an operator")
+       exit sub
+    End if
+    
+    mypush(format$(res))
+    
+end sub
+
+sub process_num_or_var(num as string)
+    if left$(num, 1) >= "0" and left$(num,1) <= "9" then
+
+      mypush(num)
+    else
+      mypush(Get_variable(num))
+    end if
+end sub
+
+dim mystack(50) as string
+dim sp as integer
+
+Sub clearstack()
+    sp = 1
+end sub
+
+Sub mypush(tok as string)
+   mystack(sp) = tok
+   sp = sp + 1
+end sub
+
+Function mypop() as string
+  sp = sp - 1
+  mypop = mystack(sp)
+end function 
+
+' There must be an API for this, but for now this will work
+
+Function rid_eol(inp as string) as string
+  rid_eol = mid$(inp, 1, len(inp)-2)
+end function
+
+function Start_variable_store()
+   pTree = Tree_New
+End Function
+
+Function Set_variable(key as string, item as string)
+   Tree_Set(pTree, key, item)
+End Function
+
+Function Get_variable(key as string) as string  
+    Get_variable = Tree_Get(pTree, key)
+end function
+
+function Release_variable_store()
+    Tree_Free(pTree)
+End Function
+
+
+' here we go, the gettok function is the so-called lexical scanner.
+
+function gettok() as string
+    dim collect as string
+    dim b as string
+    dim b1 as string
+    dim i as integer
+    
+    do while left$(buff, 1) = " "
+        buff = mid$(buff, 2)
+    loop
+    
+    if buff = "" then
+        gettok = "~"
+        exit function
+    end if
+    
+    collect = ""
+
+    b = left$(buff,1)
+    b1 = mid$(buff, 2, 1)
+    
+    if b = "<" and b1 = "=" then
+        buff = mid$(buff, 3)
+        gettok = b + b1
+        exit function
+    end if
+    
+    if b = "<" and b1 = ">" then
+        buff = mid$(buff, 3)
+        gettok = b + b1
+        exit function
+    end if
+    
+    if b = "<" then
+        buff = mid$(buff, 2)
+        gettok = b
+        exit function
+    end if
+    
+    if b = ">" and b1 = "=" then
+        buff = mid$(buff, 3)
+        gettok = b + b1
+        exit function
+    end if
+    
+    if b = ">" then
+        buff = mid$(buff, 2)
+        gettok = b
+        exit function
+    end if
+    
+    for i = 1 to ops
+        if b = op(i) then
+            gettok = b
+            buff = mid$(buff, 2)
+            exit function
+        end if
+    next i
+    
+    if b >="A" and b <= "Z" then
+        do while b >= "A" and b <= "Z" or b >= "0" and b <= "9"
+            collect = collect + b
+            buff = mid$(buff, 2)
+            b = left$(buff, 1)
+        loop
+        gettok = collect
+        exit function
+    end if
+    
+    if b >= "0" and b <= "9" then
+        do while b >= "0" and b <= "9"
+            collect = collect + b
+            buff = mid$(buff, 2)
+            b = left$(buff, 1)
+        loop
+        gettok = collect
+        exit function
+    end if
+    
+    gettok = "~":  rem end of file token
+    
+end function
+
+' The remainder of the program constitutes a recursive descent parser.  Each function can be
+' viewed as a production in a context free grammar.  A CFG is a grammar where you can predict what
+' is coming based on looking at the next symbol.  High precedence operators appear first in the function
+' list.  as you read down the code, you'll see lower and lower precedence operators.
+
+' A factor is a high precedence bundle of tokens. An identier, a number, a parenthesized expression,
+' or a unary minus followed by an expression. you will see tok, and rpn in all the following functions. 
+' each function returns the rpn of the converted expression fragment.  
+
+
+function parse_factor() as string
+    dim tok as string
+    dim rpn as string
+    
+    tok = gettok()
+
+    if tok= "(" then
+        
+        rpn = parse_or()
+        tok = gettok()
+        
+        if tok <> ")" then
+            console_write("Missing ) before "+buff)
+            buff = ""
+            parse_factor = "~"
+            exit function
+        end if
+        parse_factor = rpn
+        exit function
+    end if
+    
+    if tok = "-" then ' I think this is uneccesary after review
+        rpn = parse_or()
+        parse_factor = rpn + "UNM "
+        exit function
+    end if
+    
+    rpn = tok + " "
+    parse_factor = rpn
+
+end function
+
+function parse_exponent() as string
+    dim tok as string
+    dim rpn as string
+    
+    rpn = parse_factor()
+    tok = gettok()
+
+    do while tok = "^"
+        rpn = rpn + parse_exponent () + tok
+        tok = gettok()
+    loop
+
+    buff = tok + " " + buff
+    parse_exponent = rpn    
+end function
+
+' parse a unary minus which has less precedence than exponentiation
+' that's why unary - is checked here before exponential expressions above
+'
+' in the rpn we use a separate designation for unary minus (UNM)
+' this makes it easy for the vm to understand the different
+' interpretations
+
+
+function parse_unary_minus() as string
+    dim tok as string
+    dim rpn as string
+    dim neg as integer
+    
+    neg = false
+    
+    tok = gettok()
+    do while tok = "-" or tok = "+"
+        if tok = "-" then
+            if neg = false then
+                neg = true
+            elseif neg = true then
+                neg = false
+            end if
+        end if
+        tok = gettok()
+    loop
+    
+    buff = tok + " " + buff
+    
+    rpn = parse_exponent()
+    
+    if neg = true then
+        rpn = rpn + "UNM "
+    end if
+    
+    parse_unary_minus = rpn
+    
+end function
+
+function parse_term ()as string
+    dim tok as string
+    dim rpn as string
+    
+    rpn = parse_unary_minus()
+    tok = gettok()
+    
+    do while tok = "*" or tok = "/"
+        rpn = rpn + parse_unary_minus() + tok
+        tok = gettok()
+    loop
+    
+    buff = tok + " " + buff
+    parse_term = rpn
+    
+end function
+
+
+
+function parse_expr () as string
+    dim tok as string
+    dim rpn as string
+    
+    rpn = parse_term()
+    tok = gettok()
+    
+    do while tok = "+" or tok = "-"
+        rpn = rpn + parse_term() + tok
+        tok = gettok()
+    loop
+    
+    buff = tok + " " + buff
+    
+    parse_expr = rpn
+    
+end function
+
+function parse_condition () as string
+    dim tok as string
+    dim rpn as string
+    
+    rpn = parse_expr()
+    tok = gettok()
+    
+    if left$(tok, 1) = "=" or left$(tok, 1) = ">" or left$(tok, 1) = "<" then
+        rpn = rpn + parse_expr() + tok
+        tok = gettok()
+    end if
+    
+    buff = tok + " " + buff
+    parse_condition = rpn
+    
+end function
+
+function parse_and () as string
+    dim tok as string
+    dim rpn as string
+    
+    rpn = parse_condition()
+    tok = gettok()
+    
+    do while tok = "AND"
+        rpn = rpn + parse_condition() + tok + " "
+        tok = gettok()
+    loop
+    
+    buff = tok + " " + buff
+    parse_and = rpn
+    
+end function
+
+function parse_or () as string
+    dim tok as string
+    dim rpn as string
+    
+    rpn = parse_and()
+
+    tok = gettok()
+    
+    do while tok = "OR"
+        rpn = rpn + parse_and() + tok + " "
+        tok = gettok()
+    loop
+    
+    buff = tok + " " + buff
+    parse_or = rpn
+    
+end function
+ 
