@@ -1,5 +1,5 @@
 ﻿'---script created on 11-08-2022 14:51:59 by 
-' GarysBasic
+' LuckBasic
 ' This is my personal project to build a Basic interpreter.
 ' It's a high level project to prove to myself that i understand how to build an interpreter.
 ' I'm intentionaly using very simple algorithms and data structures. Readability outweighs performance.
