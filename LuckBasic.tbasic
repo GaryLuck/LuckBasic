@@ -33,6 +33,10 @@ uses "console"
 uses "file"
 
 dim buff as string
+dim buff_after_parse_or as string
+
+dim pc as integer ' Program counter for interpreter
+
 const ops = 8
 dim op(ops) as string
 dim pTree as Dword
@@ -130,10 +134,20 @@ function do_command(cmd as string) as integer
   elseif left$(cmd, 5) = "PRINT" then
   
      console_writeline(Val(Expr_eval(mid$(cmd, 6))))
+     buff = buff_after_parse_or ' look for extraneous stuff
+     if gettok() <> "~" then
+         console_writeline("warning: extra stuff after expression")
+      end if
 
   elseif left$(cmd, 3) = "LET" then
   
       do_let(cmd)
+     buff = buff_after_parse_or ' look for extraneous stuff
+     if gettok() <> "~" then
+         console_writeline("warning: extra stuff after expression")
+      end if
+       
+      
       
   elseif cmd = "NEW"then
     
@@ -154,6 +168,10 @@ function do_command(cmd as string) as integer
   else
     
        do_let("LET"+cmd)
+       buff = buff_after_parse_or ' look for extraneous stuff
+       if gettok() <> "~" then
+         console_writeline("warning: extra stuff after expression")
+       end if
        
     end if
   
@@ -167,6 +185,12 @@ sub do_load(fname as string)
    do_new()
    
   InFileChannel   = file_open(fname  , "INPUT" ) 
+  
+'  console_writeline(InFileChannel)
+  if InfileChannel = 0 then
+     console_writeline(fname + " not found")
+     exit sub
+  end if
 
   do while not file_eof(InFileChannel)
     sBuffer = file_lineinput(InFileChannel)
@@ -181,6 +205,11 @@ sub do_save(fname as string)
   dim OutFileChannel as long
 
   OutFileChannel  = file_open(fname, "OUTPUT") 
+  
+  if OutFileChannel = 0 then
+     console_writeline(fname + " not writeable")
+     exit sub
+  end if
   
   for i = 1 to 5000
   
@@ -217,7 +246,6 @@ End Sub
 
 sub do_run()
 
-   dim pc as integer ' Program counter
    dim startpc as integer
    dim stoprun as integer
    dim cmd as string
@@ -248,6 +276,12 @@ sub do_run()
       
       if left$(cmd, 3) = "LET" then
          do_let(cmd)
+         buff = buff_after_parse_or ' look for extraneous stuff
+         if gettok() <> "~" then
+             console_writeline("warning: extra stuff after LET expression on line " +pc)
+             
+          end if
+ 
       elseif left$(cmd, 5) = "PRINT" then
          console_writeline(Val(Expr_eval(mid$(cmd, 6))))
       elseif left$(cmd, 4) = "GOTO" then
@@ -278,6 +312,11 @@ function do_if(cmd as string) as integer
   dim linenum as integer
   
   b = val(Expr_eval(mid$(cmd, 3)))
+  buff = buff_after_parse_or ' look for extraneous stuff
+  if gettok() <> "THEN" then
+         console_writeline("warning: THEN not found right after expression end on line " + pc)
+  end if
+
   i = instr(1, cmd, "THEN")
   
   if i <> 0 then
@@ -285,7 +324,7 @@ function do_if(cmd as string) as integer
 '      console_writeline("if target is " + linenum)
   else
       console_writeline("malformed command is  :" + cmd + ":   missing THEN")
-      linenum = -1
+      linenum = 0
   end if
   
   if b then
@@ -594,7 +633,7 @@ function parse_factor() as string
         tok = gettok()
         
         if tok <> ")" then
-            console_write("Missing ) before "+buff)
+            console_writeline("Missing ) before "+buff)
             buff = ""
             parse_factor = "~"
             exit function
@@ -755,6 +794,8 @@ function parse_or () as string
     
     buff = tok + " " + buff
     parse_or = rpn
+    
+    buff_after_parse_or = buff
     
 end function
  
