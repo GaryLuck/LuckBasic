@@ -3,29 +3,9 @@
 ' This is my personal project to build a Basic interpreter.
 ' It's a high level project to prove to myself that i understand how to build an interpreter.
 ' I'm intentionaly using very simple algorithms and data structures. Readability outweighs performance.
-' Hopefully with my embeded comments you will understand the concepts of an interpreter.
 ' 
 ' Gary Luckenbaugh - fall of '22
 '
-' To date, the code you see here converts an infix expression to reverse polish notation, rpn.
-' An infix expression such as a+b*c will be converted to a b c * +. Only lowercase letters are recognized.
-' This RPN is very similar to the old HP calculators.  The above can be treated as: push a, push b, push c. 
-' Then, multiply the top two numbers on the stack, leaving the result on
-' the stack, then add the top two items on the stack.  This will result in one element on the top that is
-' the result of the expression.
-'
-' The resulting RPN is represented by a string. Variables and numbers have a trailing space to set them
-' apart from other variables and numbers.  Operators do not have a trailing space, as it is unnecessary.
-' Note: There is a distinction between unary minus and the subtraction operator.  Subtraction is represented
-' by the usual '-' symbol.  Unary minus is represented by UNM.
-'
-'
-' Some global information.
-'
-' gettok pulls a symbol off of the front of a buffer, buff. 
-
-' buff contains the text being parsed.  tokens are numbers, identifiers, operators, and other symbols.
-' gettok fetches a token from the front of buff. tokens are represented as strings.
 
 
 
@@ -37,11 +17,12 @@ dim buff_after_parse_or as string
 
 dim pc as integer ' Program counter for interpreter
 
-const ops = 8
+const ops = 9
 dim op(ops) as string
 dim pTree as Dword
 
-op(1) = "+", "-", "*", "/", "(", ")", "=", "^"
+
+op(1) = "+", "-", "*", "/", "(", ")", "=", "^", "@"
 buff = ""
 
 ' this is a brain dead way to store program lines,
@@ -49,6 +30,12 @@ buff = ""
 
 dim statement(5000) as string
 dim i as integer
+
+dim at_array(5000) as integer
+
+for i = 1 to 5000
+   at_array(i) = 2*i  ' test pattern
+next i
 
 for i = 1 to 5000
    statement(i) = ""
@@ -359,9 +346,15 @@ sub do_let(cmd as string)
    dim var as string
    dim firstchar as string
 '  console_writeline("cmd = "+cmd)
+
       buff = mid$(cmd, 4)
       var = gettok()
- '     console_writeline("buff =" + buff+ "  " + "var ="+var)
+'      console_writeline("buff =" + buff+ "  " + "var ="+var)
+      if var = "@" then
+          do_let_at_array(buff)
+          exit sub
+      end if
+      
       firstchar = left$(var, 1)
       if not (firstchar >= "A" and firstchar <= "Z") then
       
@@ -377,6 +370,30 @@ sub do_let(cmd as string)
   
       Set_variable(var, Expr_eval(buff))
 
+end sub
+
+sub do_let_at_array(e as string)
+  dim tok as string
+  
+  console_writeline("do let at array "+buff)
+  
+  dim  lval as integer
+  
+  console_writeline("expr to eval is "+e)
+  lval = Expr_eval(e)
+  console_writeline("lval is "+lval)
+  buff = buff_after_parse_or
+  tok = gettok()
+  if tok <> "=" then
+      console_writeline("Missing =")
+      exit sub
+  end if
+  
+  console_writeline("rest is " + buff)
+  
+  
+  
+  
 end sub
 
 function Expr_eval(e as string) as string
@@ -410,6 +427,20 @@ sub process_tok(tok as string)
 
     if tok = "UNM" then
         mypush(Format$(-val(mypop())))
+        exit sub
+    end if
+    
+    if tok = "GETAT" then
+'        mypush(Format$(val(at_array(mypop()))))
+        i = mypop()
+        if i < 1 or i > 5000 then
+            console_writeline("Subscript out of range 1..5000 for " + i)
+            mypush(format$(0))
+            Exit Sub
+        end if
+        
+        mypush(format$(at_array(i)))
+        
         exit sub
     end if
     
@@ -501,6 +532,7 @@ end sub
 
 Function mypop() as string
   sp = sp - 1
+'  console_writeline("sp = "+sp)
   mypop = mystack(sp)
 end function 
 
@@ -640,6 +672,35 @@ function parse_factor() as string
         end if
         parse_factor = rpn
         exit function
+    end if
+    
+    if tok = "@" then
+    
+        tok = gettok()
+    
+        if tok <> "(" then
+            console_writeline("Error in let atsign")
+            buff = ""
+            parse_factor = "~"
+            exit function
+        end if
+        
+        rpn = parse_or()
+        
+        tok = gettok()
+        
+        if tok <> ")" then
+            console_writeline("Missing ) before "+buff)
+            buff = ""
+            parse_factor = "~"
+            exit function
+        end if
+  console_writeline("@ evaluated to "+rpn+"GETAT")
+        parse_factor = rpn + "GETAT "
+        Exit Function
+        
+
+ 
     end if
     
     if tok = "-" then ' I think this is uneccesary after review
