@@ -379,37 +379,100 @@ sub do_let_at_array(e as string)
 ' a LET command.  This will disallow statements like LET @((1=2)+10) = 3.  The first
 ' equal sign is for logical equivalence where the second is for assignment.
  
-  dim i as integer
+'  dim i as integer
   dim leftstr as string
   dim rightstr as string
   
   dim leftval as integer
   dim rightval as integer
   
-'  console_writeline("e is  "+e)
-  i = instr(1, e, "=")
-'  console_writeline("i is  "+i)
-  if i = 0 then
-      console_writeline("No assignment operator in let for @ array")
-      exit sub
-  end if
+  dim rpn as string
   
-  leftstr = mid$(e, 1, i-1)
-  rightstr = mid$(e, i+1)
+'  console_writeline("e is  "+e)
+'  i = instr(1, e, "=")
+'  console_writeline("i is  "+i)
+'  if i = 0 then
+ '     console_writeline("No assignment operator in let for @ array")
+'      exit sub
+'  end if
+  
+'  leftstr = mid$(e, 1, i-1)
+'  rightstr = mid$(e, i+1)
   
 '  console_writeline("left str is "+leftstr)
 '  console_writeline("right str is "+rightstr)
 
-   leftval = val(Expr_eval(leftstr))
+'   leftval = val(Expr_eval(leftstr))
    
 '   console_writeline("leftstr is "+leftstr+"leftval is "+leftval)
-   rightval = val(Expr_eval(rightstr))
+'   rightval = val(Expr_eval(rightstr))
    
 '   console_writeline("left is "+leftval+" and right is "+rightval)
+
+  buff = e
+  if gettok() <> "(" then
+      console_writeline("an open left paren ( must follow @ in let")
+      exit sub
+  endif
+  
+  rpn = parse_or()
+  
+  if gettok() <> ")" then
+      console_writeline("missing right paren ) in LET @")
+      exit sub
+  end if
+  
+  buff_after_parse_or = buff
+
+  leftval = val(Eval_rpn(rpn))
+  
+  buff = buff_after_parse_or
+  
+  If gettok() <> "=" then
+      Console_writeline("missing = in LET @")
+      exit sub
+  end if
+  
+  rightval = Val(Eval_rpn(parse_or()))
+  
+'  console_writeline("leftval = "+leftval)
+  
+  if not (leftval >= 1 and leftval <= 5000) then
+      console_writeline("subscript out of bounds on left side of assignment is "+leftval)
+      exit sub
+  end if
 
   at_array(leftval) = Format$(rightval)
   
 end sub
+
+Function Eval_rpn(rpn as string) as string
+
+  buff = rpn
+  dim tok as string
+  
+  clearstack()
+  tok = gettok()
+  
+  if tok = "~" then
+    Eval_rpn = "0"
+    exit function
+  end if
+  
+  do while tok<> "~"
+'     console_writeline("Doing tok "+tok)
+      process_tok(tok)
+    tok = gettok()
+  loop
+  
+  dim r as string
+  r = mypop()
+'  console_writeline("result is "+r)
+  Eval_rpn = format$(r)
+  
+  End Function
+  
+  
 
 function Expr_eval(e as string) as string
 

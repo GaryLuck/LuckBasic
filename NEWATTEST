@@ -1,0 +1,5 @@
+10 I = 1
+20 PRINT @(I)
+30 I=I+1
+40 IF I<=10 THEN 20
+50 END
