@@ -59,7 +59,7 @@ Function tbmain()
       i = console_read()
       i = rid_eol(i)
       i = UCase$(i)
- '     console_writeline(i)
+'      console_writeline(i)
       
       buff = i
       
@@ -282,6 +282,8 @@ sub do_run()
               pc = target - 1
 
           end if
+      elseif left$(cmd, 5) = "INPUT" then
+          do_input(cmd)
       Else
          cmd = "LET" + cmd
          do_let(cmd)
@@ -292,6 +294,23 @@ sub do_run()
 
   loop
   
+end sub
+
+Sub do_input(cmd as string)
+    dim inval as string
+    
+    console_write("? ")
+    inval = console_read()
+    
+    dim var as string
+    var = mid$(cmd, 6)
+    
+    var=trim$(var)
+    inval=Trim$(inval)
+    inval=Remove$(inval, $CRLF)
+'    console_writeline("var is "+var+" and inval is '"+inval+ "'")
+    Set_variable(var, inval)
+    
 end sub
 
 function do_if(cmd as string) as integer
@@ -617,9 +636,11 @@ Function mypop() as string
 end function 
 
 ' There must be an API for this, but for now this will work
+' Found the API, but my function calls the API
 
 Function rid_eol(inp as string) as string
-  rid_eol = mid$(inp, 1, len(inp)-2)
+'  rid_eol = mid$(inp, 1, len(inp)-2)
+  rid_eol = Remove$(inp, $CRLF)
 end function
 
 function Start_variable_store()
