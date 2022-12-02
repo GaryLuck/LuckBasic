@@ -373,26 +373,39 @@ sub do_let(cmd as string)
 end sub
 
 sub do_let_at_array(e as string)
-  dim tok as string
+
+' There be lots of demons here that usually happen in C, but not Basic.
+' I am going to disallow the use of the logical = symbol on the left side of
+' a LET command.  This will disallow statements like LET @((1=2)+10) = 3.  The first
+' equal sign is for logical equivalence where the second is for assignment.
+ 
+  dim i as integer
+  dim leftstr as string
+  dim rightstr as string
   
-  console_writeline("do let at array "+buff)
+  dim leftval as integer
+  dim rightval as integer
   
-  dim  lval as integer
-  
-  console_writeline("expr to eval is "+e)
-  lval = Expr_eval(e)
-  console_writeline("lval is "+lval)
-  buff = buff_after_parse_or
-  tok = gettok()
-  if tok <> "=" then
-      console_writeline("Missing =")
+'  console_writeline("e is  "+e)
+  i = instr(1, e, "=")
+'  console_writeline("i is  "+i)
+  if i = 0 then
+      console_writeline("No assignment operator in let for @ array")
       exit sub
   end if
   
-  console_writeline("rest is " + buff)
+  leftstr = mid$(e, 1, i-1)
+  rightstr = mid$(e, i+1)
   
-  
-  
+'  console_writeline("left is "+leftstr)
+'  console_writeline("right is "+rightstr)
+
+   leftval = (Expr_eval(leftstr))
+   rightval = (Expr_eval(rightstr))
+   
+'   console_writeline("left is "+leftval+" and right is "+rightval)
+
+  at_array(leftval) = rightval
   
 end sub
 
@@ -695,7 +708,7 @@ function parse_factor() as string
             parse_factor = "~"
             exit function
         end if
-  console_writeline("@ evaluated to "+rpn+"GETAT")
+  ' console_writeline("@ evaluated to "+rpn+"GETAT")
         parse_factor = rpn + "GETAT "
         Exit Function
         
