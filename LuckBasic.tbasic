@@ -397,15 +397,17 @@ sub do_let_at_array(e as string)
   leftstr = mid$(e, 1, i-1)
   rightstr = mid$(e, i+1)
   
-'  console_writeline("left is "+leftstr)
-'  console_writeline("right is "+rightstr)
+'  console_writeline("left str is "+leftstr)
+'  console_writeline("right str is "+rightstr)
 
-   leftval = (Expr_eval(leftstr))
-   rightval = (Expr_eval(rightstr))
+   leftval = val(Expr_eval(leftstr))
+   
+'   console_writeline("leftstr is "+leftstr+"leftval is "+leftval)
+   rightval = val(Expr_eval(rightstr))
    
 '   console_writeline("left is "+leftval+" and right is "+rightval)
 
-  at_array(leftval) = rightval
+  at_array(leftval) = Format$(rightval)
   
 end sub
 
@@ -430,8 +432,10 @@ function Expr_eval(e as string) as string
       process_tok(tok)
     tok = gettok()
   loop
-  
-  Expr_eval = mypop()
+  dim r as integer
+  r = mypop()
+'  console_writeline("result is "+r)
+  Expr_eval = format$(r)
 
 End function
 
