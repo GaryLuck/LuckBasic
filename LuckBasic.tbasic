@@ -231,6 +231,17 @@ Sub do_list()
   
 End Sub
 
+' UDTs don't seem to be working, so I'm doing this instead
+
+dim acvar(100) as string
+dim aistart(100) as integer
+dim ailast(100) as integer
+dim aistep(100) as integer
+dim ailine(100) as integer
+
+dim for_stackp as integer
+
+
 sub do_run()
 
    dim startpc as integer
@@ -239,7 +250,10 @@ sub do_run()
    dim target as integer
    
    startpc = 0
+   for_stackp = 0
    stoprun = false
+   
+   for_stackp = 0
    
    for pc = 1 to 5000
    
@@ -284,7 +298,11 @@ sub do_run()
           end if
       elseif left$(cmd, 5) = "INPUT" then
           do_input(cmd)
-      Else
+      Elseif left$(cmd, 3) = "FOR" then
+          do_for(cmd)
+      elseif left$(cmd, 4) = "NEXT" then
+          do_next(cmd)
+      else
          cmd = "LET" + cmd
          do_let(cmd)
 '         console_writeline("Don't know " + cmd)
@@ -340,6 +358,105 @@ function do_if(cmd as string) as integer
   end if
   
 end function
+
+
+
+
+sub do_for(cmd as string)
+
+    cmd = mid$(cmd, 4)
+    buff = cmd
+    
+    dim cvar as string
+    
+    dim tok as string
+    
+    cvar = gettok()
+    
+    if gettok() <> "=" then
+        console_writeline("Missing = in FOR statment on line "+pc)
+        exit sub
+    endif
+    
+    dim istart as integer
+    dim ilast as integer
+    dim istep as integer
+    
+    istart = Val(Expr_eval(buff))
+    
+    buff = buff_after_parse_or
+    
+    if gettok() <> "TO" then
+        Console_writeline("Missing TO in FOR on line "+pc)
+        exit sub
+    end if
+    
+    ilast = Val(Expr_eval(buff))
+    
+    buff = buff_after_parse_or
+    
+    istep = 1
+    
+    if gettok() = "STEP" then
+    
+       istep = VAL(Expr_eval(buff))
+       
+    end if
+    
+    buff = buff_after_parse_or
+    
+    if gettok() <> "~" then
+    
+        console_writeline("Extraneous stuff after STEP value on line " +pc)
+        
+    endif
+    
+'    console_writeline("var = "+cvar)
+'    Console_writeline("start is " + istart)
+'    Console_writeline("last is " + ilast)
+'    Console_writeline("step = "+ istep)
+    
+    for_stackp = for_stackp + 1 
+    
+    acvar(for_stackp) = cvar
+    aistart(for_stackp) = istart
+    ailast(for_stackp) = ilast
+    aistep(for_stackp) = istep
+    ailine(for_stackp) = pc
+    
+    console_writeline("FOR " + cvar + "  for_stackp = "+ for_stackp)
+    
+
+    
+end sub
+  
+sub do_next(cmd as string)
+  console_writeline(cmd)
+  console_writeline("NEXT " + " for_stackp "  + for_stackp)
+
+  if for_stackp >= 1 then
+
+    console_writeline(acvar(for_stackp))
+    console_writeline(aistart(for_stackp))
+    console_writeline(ailast(for_stackp))
+    console_writeline(aistep(for_stackp))
+    console_writeline(ailine(for_stackp))
+
+  else
+    console_writeline("NEXT without FOR on line "+pc)
+    exit sub
+  end if
+    cmd = mid$(cmd, 5)
+    
+    buff = cmd
+    
+    if gettok() <> acvar(for_stackp) then
+        console_writeline("mismatched next on line "+pc)
+    endif
+
+    for_stackp = for_stackp  -1 
+  
+end sub
 
 function next_pc(pc as integer) as integer
   
