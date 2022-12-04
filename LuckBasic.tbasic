@@ -253,7 +253,7 @@ sub do_run()
    for_stackp = 0
    stoprun = false
    
-   for_stackp = 0
+
    
    for pc = 1 to 5000
    
@@ -412,7 +412,7 @@ sub do_for(cmd as string)
     endif
     
 '    console_writeline("var = "+cvar)
-'    Console_writeline("start is " + istart)
+ '   Console_writeline("start is " + istart)
 '    Console_writeline("last is " + ilast)
 '    Console_writeline("step = "+ istep)
     
@@ -424,37 +424,89 @@ sub do_for(cmd as string)
     aistep(for_stackp) = istep
     ailine(for_stackp) = pc
     
-    console_writeline("FOR " + cvar + "  for_stackp = "+ for_stackp)
+    Set_variable(cvar, format$(istart))
+    
+'    console_writeline("FOR " + cvar + "  for_stackp = "+ for_stackp)
     
 
     
 end sub
   
 sub do_next(cmd as string)
-  console_writeline(cmd)
-  console_writeline("NEXT " + " for_stackp "  + for_stackp)
+'  console_writeline(cmd)
+'  console_writeline("NEXT " + " for_stackp "  + for_stackp)
 
   if for_stackp >= 1 then
-
-    console_writeline(acvar(for_stackp))
-    console_writeline(aistart(for_stackp))
-    console_writeline(ailast(for_stackp))
-    console_writeline(aistep(for_stackp))
-    console_writeline(ailine(for_stackp))
+'    console_writeline("NEXT "+acvar(for_stackp))
+'     console_writeline(aistart(for_stackp))
+'    console_writeline(ailast(for_stackp))
+'    console_writeline(aistep(for_stackp))
+'    console_writeline(ailine(for_stackp))
 
   else
-    console_writeline("NEXT without FOR on line "+pc)
+    console_writeline("stack underflow NEXT without FOR on line "+pc)
     exit sub
   end if
     cmd = mid$(cmd, 5)
     
     buff = cmd
     
-    if gettok() <> acvar(for_stackp) then
+    dim controlvariable as string
+    
+    controlvariable = gettok()
+    
+'    console_writeline("control variable for NEXT is "+ controlvariable)
+'    console_writeline("control variable on stack is "+acvar(for_stackp))
+    if controlvariable <> acvar(for_stackp) then
         console_writeline("mismatched next on line "+pc)
     endif
+    
+    
+    dim var as string
+    dim start as integer
+    dim last as integer
+    dim istep as integer
+    dim iline as integer
+    
+    
 
-    for_stackp = for_stackp  -1 
+    start = aistart(for_stackp)
+    last = ailast(for_stackp)
+    istep = aistep(for_stackp)
+    iline = ailine(for_stackp)
+
+    
+    var = acvar(for_stackp) 
+    dim v as integer
+    v = val(Get_variable(var))
+    
+    v = v + istep
+    
+    if istep >= 0 then
+        if v > last then
+   '     console_writeline("popping "+ "var = "+var)
+            pc = next_pc(pc) - 1 ' bad design decision caused this -1
+            for_stackp = for_stackp - 1
+            if for_stackp > 0 then
+ '               console_writeline("  pc is now "+pc)
+'                console_writeline("  for_stackp is "+for_stackp)
+  '              console_writeline("   control variable will now be "+ acvar(for_stackp))
+            else
+'                console_writeline("End of loops")
+            endif
+        else
+            pc = iline+1
+        end if
+    else
+        if v < last then
+            pc = next_pc(pc)
+        else
+            pc = iline+1
+        end if
+    end if
+    
+    Set_variable(var, format$(v))
+
   
 end sub
 
