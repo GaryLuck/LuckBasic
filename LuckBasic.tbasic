@@ -17,12 +17,12 @@ dim buff_after_parse_or as string
 
 dim pc as integer ' Program counter for interpreter
 
-const ops = 9
+const ops = 10
 dim op(ops) as string
 dim pTree as Dword
 
 
-op(1) = "+", "-", "*", "/", "(", ")", "=", "^", "@"
+op(1) = "+", "-", "*", "/", "(", ")", "=", "^", "@", ","
 buff = ""
 
 ' this is a brain dead way to store program lines,
@@ -40,7 +40,6 @@ next i
 for i = 1 to 5000
    statement(i) = ""
 next i
-
   
 Function tbmain()
   dim i as string
@@ -58,7 +57,7 @@ Function tbmain()
       
       i = console_read()
       i = rid_eol(i)
-      i = UCase$(i)
+      i = Ucase$(i)
 '      console_writeline(i)
       
       buff = i
@@ -321,8 +320,42 @@ sub do_run()
 end sub
 
 sub do_print(cmd as string)
-'    console_writeline(Val(Expr_eval(mid$(cmd, 6))))
-     console_writeline(Expr_eval(mid$(cmd, 6)))
+
+    dim tok as string
+
+    buff = mid$(cmd, 6)
+    
+    tok = gettok()
+
+    if tok = "~" then
+         console_writeline("")
+         Exit sub
+    end if
+    
+    do while instr(1, tok, "~") = 0
+
+      if lefT$(tok, 1) = chr$(0x22) then
+          tok = mid$(tok, 2, len(tok) - 2)
+          console_write(tok + " ")
+          
+          tok = gettok()
+          
+      else
+          console_write(Expr_eval(tok + buff) + " ")
+          buff = buff_after_parse_or
+          
+          tok = gettok()
+          
+          if tok = "," then
+              tok = gettok()
+          endif
+          
+      end if
+    loop
+    
+    console_writeline("")
+  
+  
 end sub
 
 Sub do_input(cmd as string)
