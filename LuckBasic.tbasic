@@ -269,6 +269,7 @@ sub do_run()
       exit sub
   end if
   
+  'statement(5000) = "END"
   pc = startpc
    
   do while not stoprun and pc <> 0
@@ -284,7 +285,7 @@ sub do_run()
           end if
  
       elseif left$(cmd, 5) = "PRINT" then
-         console_writeline(Val(Expr_eval(mid$(cmd, 6))))
+          do_print(cmd)
       elseif left$(cmd, 4) = "GOTO" then
           pc = do_goto(cmd) - 1
       elseif cmd = "END" or cmd = "STOP" then
@@ -308,10 +309,20 @@ sub do_run()
 '         console_writeline("Don't know " + cmd)
       end if
 
-      pc = next_pc(pc)
+      if left$(cmd, 4) <> "NEXT" then
+          pc = next_pc(pc)
+      end if
+
+      
+'      console_writeline("Next PC is "+pc)
 
   loop
   
+end sub
+
+sub do_print(cmd as string)
+'    console_writeline(Val(Expr_eval(mid$(cmd, 6))))
+     console_writeline(Expr_eval(mid$(cmd, 6)))
 end sub
 
 Sub do_input(cmd as string)
@@ -485,23 +496,23 @@ sub do_next(cmd as string)
     if istep >= 0 then
         if v > last then
    '     console_writeline("popping "+ "var = "+var)
-            pc = next_pc(pc) - 1 ' bad design decision caused this -1
+            pc = next_pc(pc) 
             for_stackp = for_stackp - 1
             if for_stackp > 0 then
- '               console_writeline("  pc is now "+pc)
+'                console_writeline("  pc is now "+pc)
 '                console_writeline("  for_stackp is "+for_stackp)
-  '              console_writeline("   control variable will now be "+ acvar(for_stackp))
+'                console_writeline("   control variable will now be "+ acvar(for_stackp))
             else
 '                console_writeline("End of loops")
             endif
         else
-            pc = iline+1
+            pc = next_pc(iline)
         end if
     else
         if v < last then
             pc = next_pc(pc)
         else
-            pc = iline+1
+            pc = next_pc(iline)
         end if
     end if
     
@@ -511,7 +522,7 @@ sub do_next(cmd as string)
 end sub
 
 function next_pc(pc as integer) as integer
-  
+'  console_writeline("look for next statment after "+pc)
   for i = pc + 1 to 5000
   
     if statement(i) <> "" then
@@ -537,7 +548,7 @@ sub do_let(cmd as string)
 
       buff = mid$(cmd, 4)
       var = gettok()
-'      console_writeline("buff =" + buff+ "  " + "var ="+var)
+      console_writeline("buff = '" + buff+ "'  " + "var ="+var)
       if var = "@" then
           do_let_at_array(buff)
           exit sub
@@ -668,7 +679,7 @@ function Expr_eval(e as string) as string
 
   buff = e
   buff = parse_or()
-'  console_writeline("RPN = " + buff)
+'  console_writeline("RPN = " + buff + " after parse_or")
   dim tok as string
 
   tok = gettok()
@@ -906,6 +917,24 @@ function gettok() as string
             b = left$(buff, 1)
         loop
         gettok = collect
+'        console_writeline("number token is " + collect)
+        exit function
+    end if
+    
+    if asc(b) = 0x22 then ' quote mark
+        collect = b
+        buff = mid$(buff, 2)
+        b = left$(buff, 1)
+        do while Asc(b) <> 0x22
+            collect = collect + b
+            buff = mid$(buff, 2)
+            b = left$(buff, 1)
+        loop
+        gettok = collect + chr$(0x22)
+        buff = mid$(buff, 2)
+        
+'        console_writeline("text token is " + collect + chr$(0x22))
+        
         exit function
     end if
     
@@ -926,7 +955,7 @@ end function
 function parse_factor() as string
     dim tok as string
     dim rpn as string
-    
+'    console_writeline("Enter parse_factor with buff = '" + buff +"'")
     tok = gettok()
 
     if tok= "(" then
@@ -979,9 +1008,10 @@ function parse_factor() as string
         exit function
     end if
     
+'    console_writeline("token added to rpn is " + tok + " ")
     rpn = tok + " "
     parse_factor = rpn
-
+'    console_writeline("Exit parse_factor with buff = '" + buff +"'")
 end function
 
 function parse_exponent() as string
@@ -1113,7 +1143,7 @@ end function
 function parse_or () as string
     dim tok as string
     dim rpn as string
-    
+'    console_writeline("Entering parse_or with buff = " + buff)
     rpn = parse_and()
 
     tok = gettok()
@@ -1127,6 +1157,8 @@ function parse_or () as string
     parse_or = rpn
     
     buff_after_parse_or = buff
+    
+'    console_writeline("Leaving parse_or with buff = " + buff)
     
 end function
  
