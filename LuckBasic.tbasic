@@ -456,6 +456,7 @@ sub do_next(cmd as string)
 
   else
     console_writeline("stack underflow NEXT without FOR on line "+pc)
+      pc = next_pc(pc)
     exit sub
   end if
     cmd = mid$(cmd, 5)
