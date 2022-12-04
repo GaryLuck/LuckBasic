@@ -40,6 +40,41 @@ next i
 for i = 1 to 5000
    statement(i) = ""
 next i
+
+function myucase(s as string) as string
+    dim c(100) as string
+    dim flag as integer
+    
+    dim i as integer
+    dim collect as string
+    flag = true
+    collect = ""
+    for i = 1 to len(s)
+        c(i) = mid$(s, i, 1)
+'        console_writeline("character and code = " + c(i) + "  code = ", asc(c(i)))
+        if asc(c(i)) = 0x22 then ' toggle flag
+'            console_writeline("Toggling flag at "+i)
+            
+            if flag = true then
+                flag = false
+            else
+                flag = true
+            end if
+        end if
+        if flag = true then
+            c(i) = Ucase$(c(i))
+        endif
+'        console_writeline("character and code = " + c(i) + "  code = ", asc(c(i)))
+    next i
+    
+    for i = 1 to len(s)
+        
+        collect = collect + c(i)
+    next i
+    
+    myucase = collect
+    
+End function
   
 Function tbmain()
   dim i as string
@@ -57,7 +92,8 @@ Function tbmain()
       
       i = console_read()
       i = rid_eol(i)
-      i = Ucase$(i)
+      i = myucase(i)
+'      i = Ucase$(i)
 '      console_writeline(i)
       
       buff = i
