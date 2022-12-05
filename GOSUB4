@@ -1,0 +1,9 @@
+10 GOSUB 30
+20 PRINT "back"
+25 STOP
+30 PRINT "hi from sub"
+35 GOSUB 100
+37 PRINT "back at ",40
+40 RETURN
+100 PRINT "at 100"
+110 RETURN

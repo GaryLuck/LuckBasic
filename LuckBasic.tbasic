@@ -267,6 +267,7 @@ Sub do_list()
 End Sub
 
 ' UDTs don't seem to be working, so I'm doing this instead
+' This the FOR-NEXT stack
 
 dim acvar(100) as string
 dim aistart(100) as integer
@@ -275,6 +276,9 @@ dim aistep(100) as integer
 dim ailine(100) as integer
 
 dim for_stackp as integer
+
+dim gosub_stack(100) as integer
+dim gosub_stack_ptr as integer
 
 
 sub do_run()
@@ -286,6 +290,9 @@ sub do_run()
    
    startpc = 0
    for_stackp = 0
+   
+   gosub_stack_ptr = 0
+   
    stoprun = false
    
 
@@ -323,6 +330,10 @@ sub do_run()
           do_print(cmd)
       elseif left$(cmd, 4) = "GOTO" then
           pc = do_goto(cmd) - 1
+      elseif left$(cmd, 5) = "GOSUB" then
+          pc = do_gosub(cmd) -1
+      elseif left$(cmd, 7) = "RETURN" then
+          pc = do_return()
       elseif cmd = "END" or cmd = "STOP" then
           stoprun = true
       elseif left$(cmd, 2) = "IF" then
@@ -603,6 +614,17 @@ end Function
 
 function do_goto(cmd as string) as integer
   do_goto = val(mid$(cmd, 5))
+end function
+
+function do_gosub(cmd as string) as integer
+   do_gosub = val(mid$(cmd, 6))
+   gosub_stack_ptr = gosub_stack_ptr + 1
+   gosub_stack(gosub_stack_ptr)= pc
+end function
+
+function do_return() as integer
+    do_return = gosub_stack(gosub_stack_ptr) 
+    gosub_stack_ptr = gosub_stack_ptr - 1
 end function
 
 sub do_let(cmd as string)
