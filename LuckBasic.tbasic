@@ -358,6 +358,9 @@ end sub
 sub do_print(cmd as string)
 
     dim tok as string
+    dim comma_last as integer
+    
+    comma_last = false
 
     buff = mid$(cmd, 6)
     
@@ -368,13 +371,20 @@ sub do_print(cmd as string)
          Exit sub
     end if
     
-    do while instr(1, tok, "~") = 0
+    do while tok<> "~" 
+
+      comma_last = false
 
       if lefT$(tok, 1) = chr$(0x22) then
           tok = mid$(tok, 2, len(tok) - 2)
           console_write(tok + " ")
           
           tok = gettok()
+          
+          if tok = "," then
+             tok = gettok()
+             comma_last = true
+          end if
           
       else
           console_write(Expr_eval(tok + buff) + " ")
@@ -384,12 +394,15 @@ sub do_print(cmd as string)
           
           if tok = "," then
               tok = gettok()
+              comma_last = true
           endif
           
       end if
     loop
     
-    console_writeline("")
+    if not comma_last then
+        console_writeline("")
+    end if
   
   
 end sub
@@ -875,13 +888,14 @@ Sub clearstack()
 end sub
 
 Sub mypush(tok as string)
+  ' console_writeline("push " + tok)
    mystack(sp) = tok
    sp = sp + 1
 end sub
 
 Function mypop() as string
   sp = sp - 1
-'  console_writeline("sp = "+sp)
+  ' console_writeline("pop sp = "+sp + "tok = " + mystack(sp))
   mypop = mystack(sp)
 end function 
 
