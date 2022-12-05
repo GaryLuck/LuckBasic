@@ -1,0 +1,3 @@
+10 PRINT "Enter A? ",
+20 INPUT A
+30 PRINT A

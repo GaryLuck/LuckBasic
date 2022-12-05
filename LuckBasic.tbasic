@@ -407,23 +407,6 @@ sub do_print(cmd as string)
   
 end sub
 
-Sub do_input(cmd as string)
-    dim inval as string
-    
-    console_write("? ")
-    inval = console_read()
-    
-    dim var as string
-    var = mid$(cmd, 6)
-    
-    var=trim$(var)
-    inval=Trim$(inval)
-    inval=Remove$(inval, $CRLF)
-'    console_writeline("var is "+var+" and inval is '"+inval+ "'")
-    Set_variable(var, inval)
-    
-end sub
-
 function do_if(cmd as string) as integer
   Dim b as integer
   dim linenum as integer
@@ -451,7 +434,6 @@ function do_if(cmd as string) as integer
   end if
   
 end function
-
 
 
 
@@ -631,7 +613,7 @@ sub do_let(cmd as string)
 
       buff = mid$(cmd, 4)
       var = gettok()
-      console_writeline("buff = '" + buff+ "'  " + "var ="+var)
+'       console_writeline("buff = '" + buff+ "'  " + "var ="+var)
       if var = "@" then
           do_let_at_array(buff)
           exit sub
@@ -725,6 +707,79 @@ sub do_let_at_array(e as string)
   end if
 
   at_array(leftval) = Format$(rightval)
+  
+end sub
+
+sub do_input(cmd as string)
+
+   dim var as string
+   dim firstchar as string
+'  console_writeline("cmd = "+cmd)
+
+      buff = mid$(cmd, 6)
+      var = gettok()
+'      console_writeline("buff = '" + buff+ "'  " + "var ="+var)
+      if var = "@" then
+          do_input_at_array(buff)
+          exit sub
+      end if
+      
+      firstchar = left$(var, 1)
+      if not (firstchar >= "A" and firstchar <= "Z") then
+          console_writeline("Variable name must follow INPUT")
+          exit sub
+      end if
+          
+      dim user_input as string
+      
+      user_input = console_read()
+  
+      var = Trim$(Remove$(var, $CRLF))
+      Set_variable(var, Expr_eval(user_input))
+
+end sub
+
+sub do_input_at_array(e as string)
+
+' There be lots of demons here that usually happen in C, but not Basic.
+' I am going to disallow the use of the logical = symbol on the left side of
+' a LET command.  This will disallow statements like LET @((1=2)+10) = 3.  The first
+' equal sign is for logical equivalence where the second is for assignment.
+ 
+'  dim i as integer
+
+  dim user_input as string
+  
+  dim subval as integer
+  dim inpval as integer
+  
+  dim rpn as string
+
+  buff = e
+  if gettok() <> "(" then
+      console_writeline("an open left paren ( must follow @ in INPUT")
+      exit sub
+  endif
+  
+  rpn = parse_or()
+  
+  if gettok() <> ")" then
+      console_writeline("missing right paren ) in INPUT @")
+      exit sub
+  end if
+  
+  subval = val(Eval_rpn(rpn))
+  
+  user_input = console_read()
+  
+  inpval = Val(Expr_eval(user_input))
+  
+  if not (subval >= 1 and subval <= 5000) then
+      console_writeline("subscript out of bounds on left side of INPUT @ is " + subval)
+      exit sub
+  end if
+
+  at_array(subval) = Format$(inpval)
   
 end sub
 
