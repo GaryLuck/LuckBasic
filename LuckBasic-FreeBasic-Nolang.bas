@@ -90,7 +90,7 @@ function myucase(s as string) as string
     flag = true
     collect = ""
     for i = 1 to len(s)
-        c(i) = mid$(s, i, 1)
+        c(i) = mid(s, i, 1)
 '        Console.WriteLine("character and code = " + c(i) + "  code = ", asc(c(i)))
         if asc(c(i)) = 34 then ' toggle flag
 '            Console.writeline("Toggling flag at "+i)
@@ -102,7 +102,7 @@ function myucase(s as string) as string
             end if
         end if
         if flag = true then
-            c(i) = Ucase$(c(i))
+            c(i) = Ucase(c(i))
         end if
 '       Console.WriteLine("character and code = " + c(i) + "  code = ", asc(c(i)))
     next i
@@ -155,7 +155,7 @@ Sub Main()
       
       tok = gettok()
 
-      if left$(tok, 1) >= "0" and left$(tok, 1) <= "9" then
+      if left(tok, 1) >= "0" and left(tok, 1) <= "9" then
   
          process_line(i)
 
@@ -206,11 +206,11 @@ sub do_command(cmd as string)
    
       do_list()
     
-    elseif left$(cmd, 5) = "PRINT" then
+    elseif left(cmd, 5) = "PRINT" then
 
       do_print(cmd)
 
-    elseif left$(cmd, 3) = "LET" then
+    elseif left(cmd, 3) = "LET" then
   
        do_let(cmd)
        buff = buff_after_parse_or ' look for extraneous stuff
@@ -222,13 +222,13 @@ sub do_command(cmd as string)
     
        do_new()
        
-    elseif left$(cmd, 4) = "LOAD" then
+    elseif left(cmd, 4) = "LOAD" then
     
-        do_load(trim$(mid$(cmd, 5)))
+        do_load(trim(mid(cmd, 5)))
         
-    elseif left$(cmd, 4) = "SAVE" then
+    elseif left(cmd, 4) = "SAVE" then
   
-        do_save(trim$(mid$(cmd, 5)))
+        do_save(trim(mid(cmd, 5)))
   
     elseif cmd = "RUN" then
   
@@ -274,7 +274,7 @@ sub do_save(fname as string)
         dim i as integer
         for i = 1 to 5000
             if statement(i) <> "" then
-                print #ff, str$(i) + " " +statement(i)
+                print #ff, str(i) + " " +statement(i)
             end if
         next i
       
@@ -296,7 +296,7 @@ Sub do_list()
   for i = 1 to 5000
     
       if statement(i) <> "" then
-        print str$(i) + " " +statement(i)
+        print str(i) + " " +statement(i)
       end if
       
   next i
@@ -352,35 +352,35 @@ sub do_run()
       cmd = statement(pc)
       ' print "cmd is ";cmd;" at ";pc
       
-      if left$(cmd, 3) = "LET" then
+      if left(cmd, 3) = "LET" then
          do_let(cmd)
          buff = buff_after_parse_or ' look for extraneous stuff
          if gettok() <> "~" then
-            print "warning: extra stuff after LET expression on line " + str$(pc)
+            print "warning: extra stuff after LET expression on line " + str(pc)
              
           end if
  
-      elseif left$(cmd, 5) = "PRINT" then
+      elseif left(cmd, 5) = "PRINT" then
           do_print(cmd)
-      elseif left$(cmd, 4) = "GOTO" then
+      elseif left(cmd, 4) = "GOTO" then
           pc = do_goto(cmd) - 1
-      elseif left$(cmd, 5) = "GOSUB" then
+      elseif left(cmd, 5) = "GOSUB" then
           pc = do_gosub(cmd) -1
-      elseif left$(cmd, 7) = "RETURN" then
+      elseif left(cmd, 7) = "RETURN" then
           pc = do_return()
       elseif cmd = "END" or cmd = "STOP" then
           stoprun = true
-      elseif left$(cmd, 2) = "IF" then
+      elseif left(cmd, 2) = "IF" then
           target = do_if(cmd)
 
           if target <> 0 then 
               pc = target - 1
           end if
-      elseif left$(cmd, 5) = "INPUT" then
+      elseif left(cmd, 5) = "INPUT" then
           do_input(cmd)
-      Elseif left$(cmd, 3) = "FOR" then
+      Elseif left(cmd, 3) = "FOR" then
           do_for(cmd)
-      elseif left$(cmd, 4) = "NEXT" then
+      elseif left(cmd, 4) = "NEXT" then
           do_next(cmd)
       else
          cmd = "LET " + cmd
@@ -388,7 +388,7 @@ sub do_run()
       end if
 '       print "pc is before next check is ";pc; " cmd is ";cmd
 
-      if left$(cmd, 4) <> "NEXT" then
+      if left(cmd, 4) <> "NEXT" then
           'PRINT "WHAT THE HELL IS cmd when <> NEXT";cmd
           pc = next_pc(pc)
       end if
@@ -405,7 +405,7 @@ sub do_print(cmd as string)
     
     comma_last = false
 
-    buff = mid$(cmd, 6)
+    buff = mid(cmd, 6)
     
     tok = gettok()
 
@@ -418,7 +418,7 @@ sub do_print(cmd as string)
 
       comma_last = false
 
-      if lefT$(tok, 1) = chr$(34) then
+      if lefT(tok, 1) = chr(34) then
           tok = mid$(tok, 2, len(tok) - 2)
           print tok + " ";
           
@@ -461,7 +461,7 @@ function do_if(cmd as string) as integer
   i = instr(1, cmd, "THEN")
   
   if i <> 0 then
-      linenum = val(mid$(cmd, i + 4))
+      linenum = val(mid(cmd, i + 4))
   else
       print "malformed command is  :" + cmd + ":   missing THEN"
       linenum = 0
@@ -479,7 +479,7 @@ end function
 
 sub do_for(cmd as string)
 
-    cmd = mid$(cmd, 4)
+    cmd = mid(cmd, 4)
     buff = cmd
     
     dim cvar as string
@@ -487,7 +487,7 @@ sub do_for(cmd as string)
     cvar = gettok()
     
     if gettok() <> "=" then
-        print "Missing = in FOR statment on line "+str$(pc)
+        print "Missing = in FOR statment on line "+str(pc)
         exit sub
     end if
     
@@ -500,7 +500,7 @@ sub do_for(cmd as string)
     buff = buff_after_parse_or
     
     if gettok() <> "TO" then
-        print "Missing TO in FOR on line "+str$(pc)
+        print "Missing TO in FOR on line "+str(pc)
         exit sub
     end if
     
@@ -520,7 +520,7 @@ sub do_for(cmd as string)
     
     if gettok() <> "~" then
     
-         print "Extraneous stuff after STEP value on line " +str$(pc)
+         print "Extraneous stuff after STEP value on line " +str(pc)
         
     end if
     
@@ -533,7 +533,7 @@ sub do_for(cmd as string)
     ailine(for_stackp) = pc: 'print "pc is ";pc 
    ' input i
     
-    Set_variable(cvar, str$(istart))
+    Set_variable(cvar, str(istart))
     
 end sub
   
@@ -543,11 +543,11 @@ sub do_next(cmd as string)
 '    Console.WriteLine("NEXT "+acvar(for_stackp))
 
   else
-    print "stack underflow NEXT without FOR on line "+str$(pc)
+    print "stack underflow NEXT without FOR on line "+str(pc)
     pc = next_pc(pc)
     exit sub
   end if
-  buff = mid$(cmd, 5)
+  buff = mid(cmd, 5)
     
  
     
@@ -556,7 +556,7 @@ sub do_next(cmd as string)
     controlvariable = gettok()
     
     if controlvariable <> acvar(for_stackp) then
-        print "mismatched next on line "+str$(pc)
+        print "mismatched next on line "+str(pc)
     end if
     
     
@@ -599,7 +599,7 @@ sub do_next(cmd as string)
     
     'print "next pc is ";pc
     
-    Set_variable(cvar, str$(v)): 'print "set ";cvar;" to ";str$(v)
+    Set_variable(cvar, str(v)): 'print "set ";cvar;" to ";str(v)
     dim mwait as integer
    ' input mwait
 
@@ -622,11 +622,11 @@ function next_pc(pc as integer) as integer
 end Function
 
 function do_goto(cmd as string) as integer
-  do_goto = val(mid$(cmd, 5))
+  do_goto = val(mid(cmd, 5))
 end function
 
 function do_gosub(cmd as string) as integer
-   do_gosub = val(mid$(cmd, 6))
+   do_gosub = val(mid(cmd, 6))
    gosub_stack_ptr = gosub_stack_ptr + 1
    gosub_stack(gosub_stack_ptr)= pc
 end function
@@ -641,7 +641,7 @@ sub do_let(cmd as string)
      dim cvar as string
      dim firstchar as string
 
-      buff = mid$(cmd, 4)
+      buff = mid(cmd, 4)
       cvar = gettok()
 
       if cvar = "@" then
@@ -649,7 +649,7 @@ sub do_let(cmd as string)
           exit sub
       end if
       
-      firstchar = left$(cvar, 1)
+      firstchar = left(cvar, 1)
       if not (firstchar >= "A" and firstchar <= "Z") then
       
           print "Variable name must follow LET"
@@ -700,7 +700,7 @@ sub do_let_at_array(e as string)
   rightval = Val(Eval_rpn(parse_or()))
   
   if not (leftval >= 1 and leftval <= 5000) then
-      print "subscript out of bounds on left side of assignment is "+str$(leftval)
+      print "subscript out of bounds on left side of assignment is "+str(leftval)
       exit sub
   end if
 
@@ -713,7 +713,7 @@ sub do_input(cmd as string)
      dim cvar as string
      dim firstchar as string
 
-      buff = mid$(cmd, 6)
+      buff = mid(cmd, 6)
       cvar = gettok()
 
       if cvar = "@" then
@@ -721,7 +721,7 @@ sub do_input(cmd as string)
           exit sub
       end if
       
-      firstchar = left$(cvar, 1)
+      firstchar = left(cvar, 1)
       if not (firstchar >= "A" and firstchar <= "Z") then
           print"Variable name must follow INPUT"
           exit sub
@@ -822,7 +822,7 @@ function Expr_eval(e as string) as string
   dim r as integer
   r = val(mypop())
 
-  Expr_eval = str$(r)
+  Expr_eval = str(r)
 
 End function
 
@@ -832,7 +832,7 @@ sub process_tok(tok as string)
     dim i as integer
 
     if tok = "UNM" then
-        mypush(str$(-val(mypop())))
+        mypush(str(-val(mypop())))
         exit sub
     end if
     
@@ -840,12 +840,12 @@ sub process_tok(tok as string)
 
         i = val(mypop())
         if i < 1 or i > 5000 then
-            print "Subscript out of range 1..5000 for " + str$(i)
-            mypush(str$(0))
+            print "Subscript out of range 1..5000 for " + str(i)
+            mypush(str(0))
             Exit Sub
         end if
         
-        mypush(str$(at_array(i)))
+        mypush(str(at_array(i)))
         
         exit sub
     end if
@@ -909,12 +909,12 @@ sub process_op(op as string)
        exit sub
     End if
     
-    mypush(str$(res))
+    mypush(str(res))
     
 end sub
 
 sub process_num_or_var(num as string)
-    if left$(num, 1) >= "0" and left$(num,1) <= "9" then
+    if left(num, 1) >= "0" and left(num,1) <= "9" then
 
       mypush(num)
     else
@@ -964,7 +964,7 @@ sub Set_variable(key as string, item as string)
     nkey = asc(key) - asc("A") + 1
 
     vars(nkey) = item
-    'print "var ";nkey;" "; chr$(nkey + asc("A") - 1); " in set_var";" is ";item
+    'print "var ";nkey;" "; chr(nkey + asc("A") - 1); " in set_var";" is ";item
 
 End sub
 
@@ -997,8 +997,8 @@ function gettok() as string
     dim b1 as string
     dim i as integer
     
-    do while left$(buff, 1) = " "
-        buff = mid$(buff, 2)
+    do while left(buff, 1) = " "
+        buff = mid(buff, 2)
     loop
     
     if buff = "" then
@@ -1009,39 +1009,39 @@ function gettok() as string
     
     collect = ""
 
-    b = left$(buff,1)
-    b1 = mid$(buff, 2, 1)
+    b = left(buff,1)
+    b1 = mid(buff, 2, 1)
     
     if b = "<" and b1 = "=" then
-        buff = mid$(buff, 3)
+        buff = mid(buff, 3)
         ' console.writeline(b + b1)
         gettok = b + b1
         exit function
     end if
     
     if b = "<" and b1 = ">" then
-        buff = mid$(buff, 3)
+        buff = mid(buff, 3)
         ' console.writeline(b + b1)
         gettok = b + b1
         exit function
     end if
     
     if b = "<" then
-        buff = mid$(buff, 2)
+        buff = mid(buff, 2)
         ' console.writeline(b)
         gettok = b
         exit function
     end if
     
     if b = ">" and b1 = "=" then
-        buff = mid$(buff, 3)
+        buff = mid(buff, 3)
         ' console.writeline(b + b1)
         gettok = b + b1
         exit function
     end if
     
     if b = ">" then
-        buff = mid$(buff, 2)
+        buff = mid(buff, 2)
         ' console.writeline(b)
         gettok = b
         exit function
@@ -1053,7 +1053,7 @@ function gettok() as string
         ' console.writeline("found " + b)
            ' console.writeline(b)
             gettok = b
-            buff = mid$(buff, 2)
+            buff = mid(buff, 2)
             exit function
         end if
     next i
@@ -1063,8 +1063,8 @@ function gettok() as string
     if b >="A" and b <= "Z" then
         do while b >= "A" and b <= "Z" or b >= "0" and b <= "9"
             collect = collect + b
-            buff = mid$(buff, 2)
-            b = left$(buff, 1)
+            buff = mid(buff, 2)
+            b = left(buff, 1)
         loop
         ' console.writeline(collect)
         gettok = collect
@@ -1075,8 +1075,8 @@ function gettok() as string
     if b >= "0" and b <= "9" then
         do while b >= "0" and b <= "9"
             collect = collect + b
-            buff = mid$(buff, 2)
-            b = left$(buff, 1)
+            buff = mid(buff, 2)
+            b = left(buff, 1)
         loop
         'print "numeric token ";collect
         ' console.writeline(collect)
@@ -1087,18 +1087,18 @@ function gettok() as string
     
     if asc(b) = 34 then ' quote mark
         collect = b
-        buff = mid$(buff, 2)
-        b = left$(buff, 1)
+        buff = mid(buff, 2)
+        b = left(buff, 1)
         do while Asc(b) <> 34
             collect = collect + b
-            buff = mid$(buff, 2)
-            b = left$(buff, 1)
+            buff = mid(buff, 2)
+            b = left(buff, 1)
         loop
-        ' console.writeline(collect + chr$(34))
-        gettok = collect + chr$(34)
-        buff = mid$(buff, 2)
+        ' console.writeline(collect + chr(34))
+        gettok = collect + chr(34)
+        buff = mid(buff, 2)
         
-'        Console.WriteLine("text token is " + collect + chr$(0x22))
+'        Console.WriteLine("text token is " + collect + chr(0x22))
         
         exit function
     end if
@@ -1278,7 +1278,7 @@ function parse_condition () as string
     rpn = parse_expr()
     tok = gettok()
     
-    if left$(tok, 1) = "=" or left$(tok, 1) = ">" or left$(tok, 1) = "<" then
+    if left(tok, 1) = "=" or left(tok, 1) = ">" or left(tok, 1) = "<" then
         rpn = rpn + parse_expr() + tok
         tok = gettok()
     end if

@@ -206,7 +206,7 @@ sub do_command(cmd as string)
    
       call do_list()
     
-    elseif left$(cmd, 5) = "PRINT" then
+    elseif left(cmd, 5) = "PRINT" then
 
       call do_print(cmd)
 
