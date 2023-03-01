@@ -1,0 +1,15 @@
+/home/gary/tree/bin/Debug/net7.0/tree
+/home/gary/tree/bin/Debug/net7.0/tree.deps.json
+/home/gary/tree/bin/Debug/net7.0/tree.runtimeconfig.json
+/home/gary/tree/bin/Debug/net7.0/tree.dll
+/home/gary/tree/bin/Debug/net7.0/tree.pdb
+/home/gary/tree/obj/Debug/net7.0/tree.vbproj.AssemblyReference.cache
+/home/gary/tree/obj/Debug/net7.0/tree.GeneratedMSBuildEditorConfig.editorconfig
+/home/gary/tree/obj/Debug/net7.0/tree.AssemblyInfoInputs.cache
+/home/gary/tree/obj/Debug/net7.0/tree.AssemblyInfo.vb
+/home/gary/tree/obj/Debug/net7.0/tree.vbproj.CoreCompileInputs.cache
+/home/gary/tree/obj/Debug/net7.0/tree.dll
+/home/gary/tree/obj/Debug/net7.0/refint/tree.dll
+/home/gary/tree/obj/Debug/net7.0/tree.pdb
+/home/gary/tree/obj/Debug/net7.0/tree.genruntimeconfig.cache
+/home/gary/tree/obj/Debug/net7.0/ref/tree.dll
