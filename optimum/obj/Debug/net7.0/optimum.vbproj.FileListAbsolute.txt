@@ -1,0 +1,15 @@
+/home/gary/optimum/bin/Debug/net7.0/optimum
+/home/gary/optimum/bin/Debug/net7.0/optimum.deps.json
+/home/gary/optimum/bin/Debug/net7.0/optimum.runtimeconfig.json
+/home/gary/optimum/bin/Debug/net7.0/optimum.dll
+/home/gary/optimum/bin/Debug/net7.0/optimum.pdb
+/home/gary/optimum/obj/Debug/net7.0/optimum.vbproj.AssemblyReference.cache
+/home/gary/optimum/obj/Debug/net7.0/optimum.GeneratedMSBuildEditorConfig.editorconfig
+/home/gary/optimum/obj/Debug/net7.0/optimum.AssemblyInfoInputs.cache
+/home/gary/optimum/obj/Debug/net7.0/optimum.AssemblyInfo.vb
+/home/gary/optimum/obj/Debug/net7.0/optimum.vbproj.CoreCompileInputs.cache
+/home/gary/optimum/obj/Debug/net7.0/optimum.dll
+/home/gary/optimum/obj/Debug/net7.0/refint/optimum.dll
+/home/gary/optimum/obj/Debug/net7.0/optimum.pdb
+/home/gary/optimum/obj/Debug/net7.0/optimum.genruntimeconfig.cache
+/home/gary/optimum/obj/Debug/net7.0/ref/optimum.dll

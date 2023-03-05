@@ -1,0 +1,15 @@
+/home/gary/rpn/bin/Debug/net7.0/rpn
+/home/gary/rpn/bin/Debug/net7.0/rpn.deps.json
+/home/gary/rpn/bin/Debug/net7.0/rpn.runtimeconfig.json
+/home/gary/rpn/bin/Debug/net7.0/rpn.dll
+/home/gary/rpn/bin/Debug/net7.0/rpn.pdb
+/home/gary/rpn/obj/Debug/net7.0/rpn.vbproj.AssemblyReference.cache
+/home/gary/rpn/obj/Debug/net7.0/rpn.GeneratedMSBuildEditorConfig.editorconfig
+/home/gary/rpn/obj/Debug/net7.0/rpn.AssemblyInfoInputs.cache
+/home/gary/rpn/obj/Debug/net7.0/rpn.AssemblyInfo.vb
+/home/gary/rpn/obj/Debug/net7.0/rpn.vbproj.CoreCompileInputs.cache
+/home/gary/rpn/obj/Debug/net7.0/rpn.dll
+/home/gary/rpn/obj/Debug/net7.0/refint/rpn.dll
+/home/gary/rpn/obj/Debug/net7.0/rpn.pdb
+/home/gary/rpn/obj/Debug/net7.0/rpn.genruntimeconfig.cache
+/home/gary/rpn/obj/Debug/net7.0/ref/rpn.dll
