@@ -1,0 +1,15 @@
+/home/gary/trips/bin/Debug/net7.0/trips
+/home/gary/trips/bin/Debug/net7.0/trips.deps.json
+/home/gary/trips/bin/Debug/net7.0/trips.runtimeconfig.json
+/home/gary/trips/bin/Debug/net7.0/trips.dll
+/home/gary/trips/bin/Debug/net7.0/trips.pdb
+/home/gary/trips/obj/Debug/net7.0/trips.vbproj.AssemblyReference.cache
+/home/gary/trips/obj/Debug/net7.0/trips.GeneratedMSBuildEditorConfig.editorconfig
+/home/gary/trips/obj/Debug/net7.0/trips.AssemblyInfoInputs.cache
+/home/gary/trips/obj/Debug/net7.0/trips.AssemblyInfo.vb
+/home/gary/trips/obj/Debug/net7.0/trips.vbproj.CoreCompileInputs.cache
+/home/gary/trips/obj/Debug/net7.0/trips.dll
+/home/gary/trips/obj/Debug/net7.0/refint/trips.dll
+/home/gary/trips/obj/Debug/net7.0/trips.pdb
+/home/gary/trips/obj/Debug/net7.0/trips.genruntimeconfig.cache
+/home/gary/trips/obj/Debug/net7.0/ref/trips.dll
